@@ -1,42 +1,37 @@
-from abc import ABC, abstractmethod
-from model.checkout import Order
-import datetime
-from .receipt import Receipt
+from dataclasses import dataclass
+from model.checkout.order import Order, OrderStatus
 
-class Payment(ABC):
-    @abstractmethod
-    def process(self, order: "Order") -> Receipt: ...
 
-    def _make_receipt(self, order: "Order", method: str) -> Receipt:
+@dataclass(frozen=True)
+class Receipt:
+    payment_id: str
+    amount: float
+    status: str
+
+
+class Payment:
+
+    def __init__(self, payment_id: str, order: Order):
+        self._payment_id = payment_id
+        self._order = order
+
+    @property
+    def payment_id(self) -> str:
+        return self._payment_id
+
+    @property
+    def order(self) -> Order:
+        return self._order
+
+    def process(self) -> Receipt:
+        if self._order.total_amount <= 0:
+            raise ValueError("Valor do pedido inválido para pagamento.")
+
+        # Transição automática de status do pedido para PAID
+        self._order.advance_status(OrderStatus.PAID)
+
         return Receipt(
-            order_id = order.order_id,
-            amount = order.total(),
-            method = method,
-            timestamp = datetime.now().strftime("dd-mm-yyyy %H:%M:%S"),
+            payment_id=self._payment_id,
+            amount=self._order.total_amount,
+            status="SUCCESS",
         )
-
-class Cash(Payment):
-    def __init__(self, tendered: float):
-        self._tendered = tendered
-
-    def process(self, order: "Order") -> None:
-        # TODO: faço depois do cafézinho
-        pass
-
-class Card(Payment):
-    def __init__(self, last4: str):
-        self._last4 = last4
-
-    def process(self, order: "Order") -> None:
-        # TODO: faço depois do cafézinho
-        pass
-
-class Pix(Payment):
-    def __init__(self, key: str):
-        self._key = key
-
-    # Made with Claude
-    def process(self, order: "Order") -> Receipt:
-        receipt = self._make_receipt(order, f"Pix: {self._key}")
-        order.advance_status()
-        return receipt
