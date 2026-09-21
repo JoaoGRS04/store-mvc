@@ -1,9 +1,10 @@
 from model.checkout import Cart, Order
 
+
 class CheckoutView:
     _HEADERS = (f"{'#':<4} {'Order ID':<12} {'Customer':<20} "
                 f"{'Items':>6} {'Total':>10} {'Status':<12}")
-    _SEP     = "─" * len(_HEADERS)
+    _SEP = "─" * len(_HEADERS)
 
     def show_orders(self, orders: list[Order]) -> None:
         print(self._HEADERS)
@@ -14,7 +15,7 @@ class CheckoutView:
                   f"R${o.total():>8.2f} "
                   f"{o.status.name:<12}")
         print(self._SEP)
-    
+
     def show_cart(self, cart: Cart) -> None:
         print(cart)
 
